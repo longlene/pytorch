@@ -395,6 +395,10 @@ torch.testing._internal.fake_config_module3.e_func = _warnings.warn""",
         t["a"] = "b"
         self.assertFalse(config._is_default("e_dict"))
 
+    def testInvalidConfig(self):
+        with self.assertRaises(AssertionError):
+            Config(default=2, env_name_default="FAKE_DISABLE")
+
 
 if __name__ == "__main__":
     run_tests()

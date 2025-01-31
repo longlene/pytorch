@@ -82,7 +82,6 @@ class _Config(Generic[T]):
     justknob: Optional[str] = None
     env_name_default: Optional[list[str]] = None
     env_name_force: Optional[list[str]] = None
-    value_type: Optional[type] = None
     alias: Optional[str] = None
 
     def __init__(
@@ -103,10 +102,6 @@ class _Config(Generic[T]):
         self.env_name_force = _Config.string_or_list_of_string_to_list(env_name_force)
         self.value_type = value_type
         self.alias = alias
-        if self.justknob is not None:
-            assert isinstance(
-                self.default, bool
-            ), f"justknobs only support booleans, {self.default} is not a boolean"
         if self.alias is not None:
             assert (
                 default is _UNSET_SENTINEL
@@ -325,6 +320,21 @@ class _ConfigEntry:
                 if (env_value := _read_env_variable(val)) is not None:
                     self.env_value_force = env_value
                     break
+
+        # Ensure envvars are boolean
+        if self.justknob is not None:
+            assert isinstance(
+                self.default, bool
+            ), f"justknobs only support booleans, {self.default} is not a boolean"
+            if self.value_type is not None and (
+                config.env_name_default is not None or config.env_name_force is not None
+            ):
+                assert self.value_type in (
+                    bool,
+                    str,
+                    Optional[bool],
+                    Optional[str],
+                ), f"envvar configs only support booleans, {self.value_type} is a {type(self.value_type)}"
 
 
 class ConfigModule(ModuleType):
